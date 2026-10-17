@@ -1,0 +1,6 @@
+{
+  "target_industries": ["SaaS", "Fintech", "E-commerce"],
+  "min_company_size": 50,
+  "target_budget_tier": "high",
+  "notes": "We only want to talk to decision-makers at companies with 50+ employees who are looking for enterprise demos."
+}
