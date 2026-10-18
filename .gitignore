@@ -12,7 +12,6 @@ dist/
 ~$*.xlsx
 *.tmp
 
-
 # Virtual environments
 .venv/
 venv/
@@ -53,6 +52,5 @@ logs/
 *.log
 data/processed/
 
-# CRAG-specific
-eval/*_run*.csv
-data/eval_*.csv
+# Note: We DO NOT ignore data/crm.json because we need 
+# the initial empty file to exist so the app doesn't crash on startup.
