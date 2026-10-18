@@ -184,4 +184,4 @@ lead-ops-agent/
 
 ## License
 
-MIT
+MIT -see [LICENSE](./LICENSE).
