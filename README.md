@@ -36,6 +36,32 @@ flowchart TD
     style Score fill:#bbf
 ```
 
+## Screenshots
+
+### 1. Processing an Inbound Lead
+![Lead Form](docs/01-landing.png)
+The sales rep pastes a raw inbound email or form submission into the dashboard.
+
+### 2. Human-in-the-Loop Approval
+![Human Review Dashboard](docs/03-human-review.png)
+The agent extracts the data, calculates a deterministic ICP score of `100/100`, and drafts a personalized email. The graph then **pauses indefinitely** (`interrupt()`) until the human reviews the draft.
+
+### 3. Successful CRM Sync
+![Success CRM](docs/05-success-crm.png)
+Once the human clicks "Approve," the graph resumes, saves the record to the mock CRM, and returns a unique `LEAD-XXXX` ID.
+
+### 4. Guardrails in Action (Rejecting a Lead)
+![Unqualified Lead](docs/04-unqualified.png)
+If a lead does not meet the ICP threshold (e.g., a 5-person company), the agent short-circuits the graph. It never drafts an email or bothers the sales team.
+
+### 5. Human Rejection
+![Rejected Lead](docs/06-rejected.png)
+If the human clicks "Reject," the email is discarded, and the agent stops safely.
+
+### 6. API Documentation
+![FastAPI Swagger](docs/07-swagger.png)
+The FastAPI backend automatically generates interactive Swagger UI docs at `/docs` for the `/webhook/lead` and `/approve/{thread_id}` endpoints.
+
 ## Key Engineering Decisions
 
 ### 1. The Human-in-the-Loop (HITL) Pattern
