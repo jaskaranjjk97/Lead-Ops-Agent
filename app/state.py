@@ -1,7 +1,7 @@
 from typing import Literal, TypedDict
 
 
-class LeadState(TypedDict):
+class LeadState(TypedDict, total=False):
     # 1.Input
     raw_inbound_text: str
 

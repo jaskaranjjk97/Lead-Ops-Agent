@@ -47,7 +47,7 @@ if submitted and text_input:
     with st.spinner("Agent is extracting, enriching, and scoring..."):
         try:
             res = requests.post(f"{API_URL}/webhook/lead", json={"text": text_input})
-            
+
             if res.status_code != 200:
                 st.error(f"API Error {res.status_code}: {res.text}")
             else:
