@@ -1,4 +1,4 @@
-from langgraph.checkpoint.memory import MemorySaver
+from langgraph.checkpoint.memory import InMemorySaver
 from langgraph.graph import END, START, StateGraph
 
 from app.nodes.approve import approval_node
@@ -42,7 +42,7 @@ def build_graph():
     graph.add_edge("human_approval", "finalize")
     graph.add_edge("finalize", END)
 
-    return graph.compile(checkpointer=MemorySaver())
+    return graph.compile(checkpointer=InMemorySaver())
 
 
 compiled_graph = build_graph()

@@ -12,9 +12,7 @@ def run_lead(text: str, human_decision: str):
     print(f"\n{'=' * 60}\n> INPUT: {text[:60]}...")
 
     # 1. Invoke the graph
-    compiled_graph.invoke(
-        {"raw_inbound_text": text, "trace": []}, config=config
-    )
+    compiled_graph.invoke({"raw_inbound_text": text, "trace": []}, config=config)
 
     # Check if the graph paused at the interrupt
     state = compiled_graph.get_state(config)

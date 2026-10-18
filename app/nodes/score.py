@@ -1,60 +1,68 @@
-from langchain_core.messages import HumanMessage, SystemMessage
-from pydantic import BaseModel, Field
+import json
 
 from app import config
-from app.llm import get_llm
 from app.state import LeadState
 
 
-class LeadScore(BaseModel):
-    score: int = Field(description="score between 0-100 based on ICP match.")
-    is_qualified: bool = Field(description="True if score>60 else False.")
-    reason: str = Field(description="A single sentence reason explaning the score.")
-
-
-SCORE_SYSTEM = """You are a sales operations analyst. Score the lead from 0-100 based on the Ideal Customer Profile (ICP).
-
-Rules:
-- Match industry? +30 points
-- Company size meets minimum? +30 points
-- Budget tier is 'high'? +20 points
-- Intent is 'demo' or 'pricing'? +20 points
-- If they are a competitor or student, score 0.
-
-Return the score, a boolean is_qualified (score >= 60), and a one-sentence reason."""
-
-
 def score_node(state: LeadState) -> dict:
-    """LangGraph Node: Score with LLM based on ICP match."""
-    icp_data = config.ICP_FILE.read_text()
+    """Score the enriched lead against the ICP using deterministic Python logic."""
 
-    lead_summary = f"""
-        Company: {state.get("company_name")}
-        Industry: {state.get("industry")}
-        Size: {state.get("company_size")}
-        Budget: {state.get("budget_tier")}
-        Intent: {state.get("intent")}
-"""
-    llm = get_llm().with_structured_output(LeadScore)
-    result: LeadScore = llm.invoke(
-        [
-            SystemMessage(content=SCORE_SYSTEM),
-            HumanMessage(content=f"ICP:\n{icp_data}\n\nLead Data:\n{lead_summary}"),
-        ]
-    )
+    # 1. Load the ICP rules
+    icp = json.loads(config.ICP_FILE.read_text())
+
+    score = 0
+    reasons = []
+
+    # 2. Extract facts from the state
+    industry = state.get("industry", "Unknown")
+    size = state.get("company_size", 0)
+    budget = state.get("budget_tier", "unknown")
+    intent = state.get("intent", "other")
+
+    # 3. Apply the rules (Pure Python)
+    # Make matching case-insensitive
+    target_industries_lower = [i.lower() for i in icp["target_industries"]]
+    industry_lower = industry.lower()
+
+    if industry_lower in target_industries_lower:
+        score += 30
+        reasons.append(f"Industry ({industry}) matches")
+    else:
+        reasons.append(f"Industry ({industry}) does not match")
+    if size >= icp["min_company_size"]:
+        score += 30
+        reasons.append(f"Size ({size}) meets minimum")
+    else:
+        reasons.append(f"Size ({size}) is too small")
+
+    if budget == icp["target_budget_tier"]:
+        score += 20
+        reasons.append(f"Budget ({budget}) matches")
+    else:
+        reasons.append(f"Budget ({budget}) is not high")
+
+    if intent in ["demo", "pricing"]:
+        score += 20
+        reasons.append(f"Intent ({intent}) is strong")
+    else:
+        reasons.append(f"Intent ({intent}) is weak")
+
+    # 4. Calculate qualification (Python handles the math perfectly)
+    is_qualified = score >= 60
+    reason_string = ", ".join(reasons)
 
     return {
-        "lead_score": result.score,
-        "is_qualified": result.is_qualified,
+        "lead_score": score,
+        "is_qualified": is_qualified,
         "trace": state.get("trace", [])
         + [
             {
                 "node": "score",
                 "status": "ok",
                 "details": {
-                    "score": result.score,
-                    "is_qualified": result.is_qualified,
-                    "reason": result.reason,
+                    "score": score,
+                    "qualified": is_qualified,
+                    "reason": reason_string,
                 },
             }
         ],
